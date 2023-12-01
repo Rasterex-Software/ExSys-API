@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rasterex-example-erp-demo-backend
+    environment:
+      - PG_DATABASE_HOST=${PG_DATABASE_HOST}
+      - PG_DATABASE_NAME=${PG_DATABASE_NAME}
+      - PG_DATABASE_USER=${PG_DATABASE_USER}
+      - PG_DATABASE_PASSWORD=${PG_DATABASE_PASSWORD}
+      - PG_DATABASE_PORT=${PG_DATABASE_PORT}
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./src:/app/src
