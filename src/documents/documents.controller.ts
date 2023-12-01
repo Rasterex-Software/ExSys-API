@@ -32,7 +32,7 @@ export class DocumentsController {
   })
   @UseInterceptors(FileInterceptor('file'))
   create(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: any,
     @Body() document: CreateDocumentDto): Promise<Document> {
       document.url = "http://";
     return this.documentsService.create(document);
@@ -66,7 +66,7 @@ export class DocumentsController {
   @UseInterceptors(FileInterceptor('file'))
   createDocumentVersion(
     @Param('id') id: number,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: any,
     @Body() version: CreateDocumentVersionDto): Promise<DocumentVersion> {
       version.documentId = id;
       version.url = "http://";

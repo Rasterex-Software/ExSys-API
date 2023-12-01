@@ -7,7 +7,7 @@ export class CreateDocumentDto {
     format: 'binary',
     required: true,
   })
-  file: Express.Multer.File;
+  file: any;
 
   @ApiProperty({ required: true })
   @IsString()
