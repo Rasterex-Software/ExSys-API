@@ -23,7 +23,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       logger: 'simple-console',
       // ssl: { ca: process.env.SSL_CERT, rejectUnauthorized: false },
       // never use TRUE in production!
-      synchronize: false,
+      synchronize: true,
       migrationsRun: false,
     };
   }

@@ -9,7 +9,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  private list(@Query() query: QueryUserDto): Promise<PaginateDto<User>> {
+  list(@Query() query: QueryUserDto): Promise<PaginateDto<User>> {
     return this.usersService.list(query);
   }
 }
