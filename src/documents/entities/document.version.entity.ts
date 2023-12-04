@@ -28,6 +28,9 @@ export class DocumentVersion {
   @Column({ nullable: false })
   version: number;
 
+  @Column({ length: 1024, nullable: true })
+  key: string;
+
   /*
   * Create and Update Date Columns
   */
@@ -50,6 +53,6 @@ export class DocumentVersion {
   documentId: number;
 
   @ApiProperty()
-  @ManyToOne(() => Document, (document) => document.versions)
+  @ManyToOne(() => Document, (document) => document.versions, { onDelete: 'CASCADE' })
   document: Document;
 }

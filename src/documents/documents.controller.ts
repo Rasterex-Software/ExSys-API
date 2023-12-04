@@ -8,8 +8,11 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
-  Query
+  Query,
+  Res,
+  HttpStatus
 } from '@nestjs/common';
+import { Response } from 'express';
 import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/create-document.dto';
 import { UpdateDocumentDto } from './dto/update-document.dto';
@@ -20,10 +23,14 @@ import { PaginateDto } from 'src/common/typeorm/dto/paginate.dto';
 import { Document } from './entities/document.entity';
 import { CreateDocumentVersionDto } from './dto/create-document-version.dto';
 import { DocumentVersion } from './entities/document.version.entity';
+import { AwsService } from 'src/common/typeorm/aws.service';
 
 @Controller('documents')
 export class DocumentsController {
-  constructor(private readonly documentsService: DocumentsService) {}
+  constructor(
+    private readonly documentsService: DocumentsService,
+    private readonly awsService: AwsService
+  ) {}
 
   @Post()
   @ApiConsumes('multipart/form-data')
@@ -31,11 +38,15 @@ export class DocumentsController {
     type: CreateDocumentDto,
   })
   @UseInterceptors(FileInterceptor('file'))
-  create(
+  async create(
     @UploadedFile() file: any,
     @Body() document: CreateDocumentDto): Promise<Document> {
-      document.url = "http://";
-    return this.documentsService.create(document);
+      const fileName = `${Date.now()}-${file.originalname}`;
+      const s3Response: any = await this.awsService.uploadToS3(file.buffer, fileName);
+      document.url = s3Response.Location;
+      document.key = fileName;
+
+      return this.documentsService.create(document);
   }
 
   @Get()
@@ -43,33 +54,119 @@ export class DocumentsController {
     return this.documentsService.list(query);
   }
 
-/*   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Document> {
-    return this.documentsService.findOne(+id);
-  } */
+  @Get(':id')
+  async findOne(@Param('id') id: string, @Res() res: Response): Promise<any> {
+    const document = await this.documentsService.findOne(+id);
 
-/*  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDocumentDto: UpdateDocumentDto) {
-    return this.documentsService.update(+id, updateDocumentDto);
-  } */
+    if (!document) {
+      return res.status(HttpStatus.NOT_FOUND).send();
+    }
 
- /*  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.documentsService.remove(+id);
-  } */
+    return res.status(HttpStatus.OK).send(document);
+  }
 
+  @Patch(':id')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UpdateDocumentDto,
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async update(
+    @Param('id') id: string,
+    @UploadedFile() file: any,
+    @Body() updateDocumentDto: UpdateDocumentDto,
+    @Res() res: Response) {
+      const document = await this.documentsService.findOne(+id);
+
+      if (!document) {
+        return res.status(HttpStatus.NOT_FOUND).send();
+      }
+
+      if (file) {
+        if (document.key) {
+          await this.awsService.removeFromS3(document.key);
+        }
+
+        const fileName = `${Date.now()}-${file.originalname}`;
+        const s3Response: any = await this.awsService.uploadToS3(file.buffer, fileName);
+        updateDocumentDto.url = s3Response.Location;
+        updateDocumentDto.key = fileName;
+      }
+
+      await this.documentsService.update(+id, updateDocumentDto);
+
+      return res.status(HttpStatus.OK).send({ messege: 'Document is successfully updated.'});
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string, @Res() res: Response): Promise<any> {
+    const document = await this.documentsService.findOne(+id);
+
+    if (!document) {
+      return res.status(HttpStatus.NOT_FOUND).send();
+    }
+
+    await this.documentsService.remove(+id);
+
+    if (document?.key) {
+      await this.awsService.removeFromS3(document.key);
+    }
+
+    if (document.versions?.length) {
+      await Promise.all(document.versions.map(async (version) => {
+        if (version.key) {
+          await this.awsService.removeFromS3(version.key);
+        }
+      }));
+    }
+
+    return res.status(HttpStatus.OK).send({ messege: 'Document is successfully deleted.'});
+  }
+
+  /* versions */
   @Post(':id/versions')
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     type: CreateDocumentVersionDto,
   })
   @UseInterceptors(FileInterceptor('file'))
-  createDocumentVersion(
+  async createDocumentVersion(
     @Param('id') id: number,
     @UploadedFile() file: any,
-    @Body() version: CreateDocumentVersionDto): Promise<DocumentVersion> {
+    @Body() version: CreateDocumentVersionDto,
+    @Res() res: Response): Promise<any> {
+      const document = await this.documentsService.findOne(+id);
+
+      if (!document) {
+        return res.status(HttpStatus.NOT_FOUND).send({ message: 'Document not found.' });
+      }
+
       version.documentId = id;
-      version.url = "http://";
-    return this.documentsService.createDocumentVersion(version);
+
+      const fileName = `${Date.now()}-${file.originalname}`;
+      const s3Response: any = await this.awsService.uploadToS3(file.buffer, fileName);
+      version.url = s3Response.Location;
+      version.key = fileName;
+
+      await this.documentsService.createDocumentVersion(version);
+
+      return res.status(HttpStatus.OK).send();
+  }
+
+  @Delete('versions/:version')
+  async removeVersion(@Param('version') versionId: string, @Res() res: Response): Promise<any> {
+    const version = await this.documentsService.findDocumentVersion(+versionId);
+
+    if (!version) {
+      return res.status(HttpStatus.NOT_FOUND).send();
+    }
+
+    await this.documentsService.removeDocumentVersion(+versionId);
+
+    if (version?.key) {
+      await this.awsService.removeFromS3(version.key);
+    }
+
+    return res.status(HttpStatus.OK).send({ messege: 'Version is successfully deleted.'});
   }
 }

@@ -23,4 +23,5 @@ export class CreateDocumentDto {
   status?: string;
 
   url?: string;
+  key?: string;
 }

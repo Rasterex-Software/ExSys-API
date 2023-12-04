@@ -17,4 +17,5 @@ export class CreateDocumentVersionDto {
   url?: string;
   documentId?: number;
   version?: number;
+  key: string;
 }

@@ -31,6 +31,9 @@ export class Document {
   @Column()
   status: string;
 
+  @Column({ length: 1024, nullable: true })
+  key: string;
+
   /*
   * Create and Update Date Columns
   */

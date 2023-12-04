@@ -71,11 +71,39 @@ export class DocumentsService {
     });
   }
 
-  update(id: number, updateDocumentDto: UpdateDocumentDto) {
-    return `This action updates a #${id} document`;
+  async update(id: number, updateDocumentDto: UpdateDocumentDto): Promise<any> {
+    return await this.repository.update(id, updateDocumentDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} document`;
+  async remove(id: number): Promise<void> {
+    const document = await this.repository.findOne({
+      where: {
+        id: id,
+      }
+    });
+
+    if (document) {
+      await this.repository.remove(document);
+    }
+  }
+
+  async findDocumentVersion(id: number): Promise<DocumentVersion> {
+    return await this.documentVersionRepository.findOne({
+      where: {
+        id: id,
+      }
+    });
+  }
+
+  async removeDocumentVersion(id: number): Promise<void> {
+    const version = await this.documentVersionRepository.findOne({
+      where: {
+        id: id,
+      }
+    });
+
+    if (version) {
+      await this.documentVersionRepository.remove(version);
+    }
   }
 }

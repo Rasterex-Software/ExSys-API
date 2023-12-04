@@ -4,6 +4,7 @@ import { DocumentsController } from './documents.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Document } from './entities/document.entity';
 import { DocumentVersion } from './entities/document.version.entity';
+import { AwsService } from 'src/common/typeorm/aws.service';
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { DocumentVersion } from './entities/document.version.entity';
     ]),
   ],
   controllers: [DocumentsController],
-  providers: [DocumentsService],
+  providers: [DocumentsService, AwsService],
 })
 export class DocumentsModule {}
