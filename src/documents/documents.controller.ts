@@ -24,6 +24,7 @@ import { Document } from './entities/document.entity';
 import { CreateDocumentVersionDto } from './dto/create-document-version.dto';
 import { DocumentVersion } from './entities/document.version.entity';
 import { AwsService } from 'src/common/typeorm/aws.service';
+import { UpdateDocumentVersionDto } from './dto/update-document-version.dto';
 
 @Controller('documents')
 export class DocumentsController {
@@ -168,5 +169,38 @@ export class DocumentsController {
     }
 
     return res.status(HttpStatus.OK).send({ messege: 'Version is successfully deleted.'});
+  }
+
+  @Patch('versions/:version')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UpdateDocumentVersionDto,
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async updateVersion(
+    @Param('version') versionId: string,
+    @UploadedFile() file: any,
+    @Body() updateVersionDto: UpdateDocumentVersionDto,
+    @Res() res: Response) {
+      const version = await this.documentsService.findDocumentVersion(+versionId);
+
+      if (!version) {
+        return res.status(HttpStatus.NOT_FOUND).send();
+      }
+
+      if (file) {
+        if (version.key) {
+          await this.awsService.removeFromS3(version.key);
+        }
+
+        const fileName = `${Date.now()}-${file.originalname}`;
+        const s3Response: any = await this.awsService.uploadToS3(file.buffer, fileName);
+        updateVersionDto.url = s3Response.Location;
+        updateVersionDto.key = fileName;
+      }
+
+      await this.documentsService.updateDocumentVersion(+versionId, updateVersionDto);
+
+      return res.status(HttpStatus.OK).send({ messege: 'Document version is successfully updated.'});
   }
 }

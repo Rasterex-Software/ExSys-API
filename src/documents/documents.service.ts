@@ -8,6 +8,7 @@ import { Document } from './entities/document.entity';
 import { Repository, DeepPartial } from 'typeorm';
 import { DocumentVersion } from './entities/document.version.entity';
 import { CreateDocumentVersionDto } from './dto/create-document-version.dto';
+import { UpdateDocumentVersionDto } from './dto/update-document-version.dto';
 
 @Injectable()
 export class DocumentsService {
@@ -105,5 +106,9 @@ export class DocumentsService {
     if (version) {
       await this.documentVersionRepository.remove(version);
     }
+  }
+
+  async updateDocumentVersion(id: number, updateVersionDto: UpdateDocumentVersionDto): Promise<any> {
+    return await this.documentVersionRepository.update(id, updateVersionDto);
   }
 }
