@@ -28,7 +28,7 @@ export class Document {
   url: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ nullable: true })
   status: string;
 
   @Column({ length: 1024, nullable: true })

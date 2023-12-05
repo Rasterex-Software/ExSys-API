@@ -56,8 +56,6 @@ export class DocumentsService {
 
     version.version = count + 1;
 
-    console.log(version);
-
     return await this.documentVersionRepository.save({ ...version, document });
   }
 

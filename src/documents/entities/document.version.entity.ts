@@ -21,7 +21,7 @@ export class DocumentVersion {
   url: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ nullable: true })
   description: string;
 
   @ApiProperty()

@@ -149,9 +149,9 @@ export class DocumentsController {
       version.url = s3Response.Location;
       version.key = fileName;
 
-      await this.documentsService.createDocumentVersion(version);
+      const result = await this.documentsService.createDocumentVersion(version);
 
-      return res.status(HttpStatus.OK).send();
+      return res.status(HttpStatus.OK).send(result);
   }
 
   @Delete('versions/:version')
