@@ -24,15 +24,8 @@ export class Document {
   title: string;
 
   @ApiProperty()
-  @Column({ nullable: false })
-  url: string;
-
-  @ApiProperty()
   @Column({ nullable: true })
   status: string;
-
-  @Column({ length: 1024, nullable: true })
-  key: string;
 
   /*
   * Create and Update Date Columns

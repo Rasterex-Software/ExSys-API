@@ -17,8 +17,8 @@ export class DocumentVersion {
   id!: number;
 
   @ApiProperty()
-  @Column({ nullable: false })
-  url: string;
+  @Column({ length: 1024, nullable: false })
+  name: string;
 
   @ApiProperty()
   @Column({ nullable: true })
@@ -27,9 +27,6 @@ export class DocumentVersion {
   @ApiProperty()
   @Column({ nullable: false })
   version: number;
-
-  @Column({ length: 1024, nullable: true })
-  key: string;
 
   /*
   * Create and Update Date Columns
