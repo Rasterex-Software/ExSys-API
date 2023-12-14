@@ -16,10 +16,10 @@ async function bootstrap() {
 
   SwaggerModule.setup('api', app, document);
 
-  app.enableCors({
+  /* app.enableCors({
     origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  });
+  }); */
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
