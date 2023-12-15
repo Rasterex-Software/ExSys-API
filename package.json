@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "start:pm2": "nest build && pm2 delete exsys-api || true && pm2 start dist/main.js --name exsys-api",
+    "start:pm2": "nest build && cp web.config dist/ && (pm2 delete exsys-api || true) && pm2 start dist/main.js --name exsys-api",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
