@@ -27,7 +27,7 @@ export class DocumentsService {
       relations: {
         versions: true,
       },
-      order: { id: query.order || 'ASC' },
+      order: { id: query.order || 'ASC', versions: { id: 'DESC' } },
       take: query.take || 9999,
       skip: query.skip || 0,
     });
