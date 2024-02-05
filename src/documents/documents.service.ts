@@ -45,16 +45,17 @@ export class DocumentsService {
   async createDocumentVersion(version: DeepPartial<CreateDocumentVersionDto>): Promise<DocumentVersion> {
     const document = await this.repository.findOne({ where: { id: version.documentId } });
 
-    const count = await this.documentVersionRepository.count({
+    const lastVersion = await this.documentVersionRepository.findOne({
       relations: ['document'],
       where: {
         document: {
           id: document.id
         }
-      }
+      },
+      order: { id: 'DESC' },
     });
 
-    version.version = count + 1;
+    version.version = lastVersion ? lastVersion.version + 1 : 1;
 
     return await this.documentVersionRepository.save({ ...version, document });
   }
